@@ -1,27 +1,26 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+name: Deploy TetraCube
 
 on:
-  # Runs on pushes targeting the default branch
+  # runs on pushes targeting the main branch
   push:
     branches: ['main']
 
-  # Allows you to run this workflow manually from the Actions tab
+  # allows for the workflow to be manually ran
   workflow_dispatch:
 
-# Sets the GITHUB_TOKEN permissions to allow deployment to GitHub Pages
+# config github token permissions
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow one concurrent deployment
+# allow one concurrent deployment
 concurrency:
   group: 'pages'
   cancel-in-progress: true
 
 jobs:
-  # Single deploy job since we're just deploying
+  # single deploy job since this is just for deploying
   deploy:
     environment:
       name: github-pages
