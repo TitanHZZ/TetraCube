@@ -1,6 +1,7 @@
 import { Box } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
+import { useForwardRaycast } from '../src/forwardraycast';
 
 // we assume that the block size is 1
 const pieces = {
@@ -72,9 +73,11 @@ const pieces = {
 // js object with all the types available in the pieces object above
 export const PieceTypes = Object.fromEntries(Object.keys(pieces).map(key => [key, key]));
 
-function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0] }) {
+function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], onCollision = () => {} }) {
     const pieceRef = useRef();
     const elapsedTime = useRef(0);
+
+    const raycast = useForwardRaycast(pieceRef);
 
     useFrame((state, delta, xrFrame) => {
         // update elapsed time
@@ -83,7 +86,14 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0] }) {
         // reset elapsed time if it exceeds 1 second and move the piece
         if (elapsedTime.current >= 1) {
             elapsedTime.current = 0;
-            // pieceRef.current.position.y -= 1;
+
+            const intersections = raycast();
+            if (intersections.length === 0) {
+                pieceRef.current.position.y -= 1;
+                // console.log(intersections);
+            } else {
+                onCollision();
+            }
         }
     });
 
