@@ -7,10 +7,10 @@ import { Vector3 } from 'three';
 const pieces = {
     OrangeRicky: {
         pos: [
-            [0, 0, 0],
-            [1, 0, 0],
-            [2, 0, 0],
-            [2, 1, 0]
+            [0, -1, 0],
+            [1, -1, 0],
+            [2, -1, 0],
+            [2, 0, 0]
         ],
         color: "#ffa502"
     },
@@ -25,19 +25,19 @@ const pieces = {
     },
     BlueRicky: {
         pos: [
-            [0, 0, 0],
-            [1, 0, 0],
-            [2, 0, 0],
-            [0, 1, 0]
+            [0, -1, 0],
+            [1, -1, 0],
+            [2, -1, 0],
+            [0, 0, 0]
         ],
         color: "#0001fe"
     },
     Teewee: {
         pos: [
-            [0, 0, 0],
+            [0, -1, 0],
+            [1, -1, 0],
+            [2, -1, 0],
             [1, 0, 0],
-            [2, 0, 0],
-            [1, 1, 0],
         ],
         color: "#aa01ff"
     },
@@ -61,10 +61,10 @@ const pieces = {
     },
     Rhodeislandz: {
         pos: [
-            [0, 0, 0],
+            [0, -1, 0],
+            [1, -1, 0],
             [1, 0, 0],
-            [1, 1, 0],
-            [2, 1, 0],
+            [2, 0, 0],
         ],
         color: "#01ff00"
     }
@@ -141,8 +141,18 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
 
     const handleKeyDown = (e) => {
         let mov_vector = { x: 0, y: 0, z: 0 };
-        let rot_vector = { x: 0, y: 0, z: 0 };
 
+        // special case of hard drop the piece
+        if (e.key.toUpperCase() === ' ') {
+            mov_vector.y = -1;
+
+            while (goTo(pieceRef, grid, mov_vector, rot_vector)[0] === true);
+            elapsedTime.current = 2;
+            return;
+        }
+
+        mov_vector.y = 0;
+        let rot_vector = { x: 0, y: 0, z: 0 };
         switch (e.key.toUpperCase()) {
             // position
             case 'W':
@@ -167,8 +177,6 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
                 break;
             case 'R':
                 rot_vector.z += Math.PI / 2;
-                break;
-            case ' ':
                 break;
             default:
                 break;

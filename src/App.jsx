@@ -48,7 +48,12 @@ function App() {
         const typeChoice = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
 
         const collisionHandler = () => setCurrentPiece(null);
-        const newPiece = <Piece type={PieceTypes[typeChoice]} position={[2, GRID_SIZE * 2, 2]} grid={gridState} onCollision={collisionHandler} />;
+        const newPiece = <Piece
+            type={PieceTypes[typeChoice]}
+            position={[GRID_SIZE / 2 - 1, GRID_SIZE * 2 - 1, GRID_SIZE / 2 - 1]}
+            grid={gridState}
+            onCollision={collisionHandler}
+        />;
         setCurrentPiece(newPiece);
     };
 
