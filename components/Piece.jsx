@@ -113,7 +113,7 @@ function goTo(ref, grid, mov_vector, rot_vector) {
 
     const new_pos = ref.current.children.map(c => {
         const position = new Vector3();
-        c.getWorldPosition(position)
+        c.getWorldPosition(position);
         return position.round();
     });
 
@@ -137,6 +137,7 @@ function goTo(ref, grid, mov_vector, rot_vector) {
 function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCollision }) {
     const pieceRef = useRef(null);
     const elapsedTime = useRef(0);
+    const originalPos = useRef([]);
     const pieceState = useRef(PieceState.BeingUsed);
 
     const handleKeyDown = (e) => {
@@ -182,13 +183,20 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
                 break;
         }
 
-        // try to change the piece accordingly to the pressed key
+        // try to change the piece according to the pressed key
         if (pieceState.current === PieceState.BeingUsed)
             goTo(pieceRef, grid, mov_vector, rot_vector);
     };
 
     useEffect(() => {
         window.addEventListener('keydown', handleKeyDown);
+
+        // used for the displacement calculation
+        originalPos.current = pieceRef.current.children.map(c => {
+            const position = new Vector3();
+            c.getWorldPosition(position);
+            return position.round();
+        });
 
         // cleanup function
         return () => {
@@ -214,6 +222,7 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
                 if (got_down === false && reason === InvalidPositionReason.CannotGoDown) {
                     pieceState.current = PieceState.Done;
 
+                    // update the grid with the new blocks
                     pieceRef.current.children.map(c => {
                         let position = new Vector3();
                         c.getWorldPosition(position);
@@ -222,7 +231,24 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
                         grid[position.x][position.z][position.y] = pieces[type].color;
                     });
 
-                    onCollision();
+                    let displacements = [];
+
+                    // calculate the final displacement for each block
+                    pieceRef.current.children.map((c, i) => {
+                        const position = new Vector3();
+                        c.getWorldPosition(position);
+
+                        const disp = position.round().sub(originalPos.current[i]);
+                        const abs_disp = {
+                            x: Math.abs(disp.x),
+                            y: Math.abs(disp.y),
+                            z: Math.abs(disp.z)
+                        };
+
+                        displacements.push(abs_disp);
+                    });
+
+                    onCollision(displacements);
                 }
             }
         }

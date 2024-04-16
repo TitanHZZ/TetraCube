@@ -8,7 +8,7 @@ const GRID_SIZE = 6;
 function App() {
     const orbitRef = useRef(null);
     const [currentPiece, setCurrentPiece] = useState(null);
-    const [gridState, setGridState] = useState(() => {
+    const grid = useRef((() => {
         const initialState = [];
         for (let i = 0; i < GRID_SIZE; i++) {
             const xLayer = [];
@@ -21,10 +21,11 @@ function App() {
         }
 
         return initialState;
-    });
+    })());
 
     // add a new piece when the current one is null
     useEffect(() => {
+        // TODO: check if the player lost the game
         if (currentPiece === null) {
             addPiece();
         }
@@ -43,15 +44,23 @@ function App() {
         }
     }, [orbitRef.current]);
 
+    const collisionHandler = (displacements) => {
+        const min_disp = Math.min(...displacements.map(d => d.y));
+        if (min_disp === 0) {
+            console.log("GAME OVER");
+        } else {
+            setCurrentPiece(null);
+        }
+    };
+
     const addPiece = () => {
         const possibleTypes = Object.keys(PieceTypes);
         const typeChoice = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
 
-        const collisionHandler = () => setCurrentPiece(null);
         const newPiece = <Piece
             type={PieceTypes[typeChoice]}
             position={[GRID_SIZE / 2 - 1, GRID_SIZE * 2 - 1, GRID_SIZE / 2 - 1]}
-            grid={gridState}
+            grid={grid.current}
             onCollision={collisionHandler}
         />;
         setCurrentPiece(newPiece);
@@ -65,7 +74,7 @@ function App() {
 
             {currentPiece}
 
-            {gridState.map((x_val, x) => {
+            {grid.current.map((x_val, x) => {
                 return x_val.map((z_val, z) => {
                     return z_val.map((y_val, y) => {
                         if (y_val !== null) {
