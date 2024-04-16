@@ -141,6 +141,7 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
 
     const handleKeyDown = (e) => {
         let mov_vector = { x: 0, y: 0, z: 0 };
+        let rot_vector = { x: 0, y: 0, z: 0 };
 
         // special case of hard drop the piece
         if (e.key.toUpperCase() === ' ') {
@@ -152,7 +153,6 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
         }
 
         mov_vector.y = 0;
-        let rot_vector = { x: 0, y: 0, z: 0 };
         switch (e.key.toUpperCase()) {
             // position
             case 'W':
