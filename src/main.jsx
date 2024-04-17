@@ -6,7 +6,7 @@ import { Canvas } from '@react-three/fiber';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
     <div className="h-screen" style={{ backgroundColor: "#484954" }}>
-        <Canvas camera={{ fov: 30 }}>
+        <Canvas camera={{ fov: 30 }} shadows>
             <App />
         </ Canvas >
     </div>

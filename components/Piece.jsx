@@ -257,7 +257,7 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
     return (
         <group ref={pieceRef} position={position}>
             {pieces[type].pos.map((value, index) => (
-                <Box key={index} args={[1, 1, 1]} position={value}>
+                <Box castShadow receiveShadow key={index} args={[1, 1, 1]} position={value}>
                     <meshPhongMaterial attach="material" color={pieces[type].color} />
                 </Box>
             ))}

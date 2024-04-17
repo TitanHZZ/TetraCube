@@ -1,4 +1,4 @@
-import { OrbitControls, Box } from "@react-three/drei";
+import { OrbitControls, Box, Plane } from "@react-three/drei";
 import Grid from "../components/Grid";
 import React, { useEffect, useRef, useState } from "react";
 import Piece, { PieceTypes } from "../components/Piece";
@@ -45,6 +45,7 @@ function App() {
     }, [orbitRef.current]);
 
     const collisionHandler = (displacements) => {
+        // TODO: set the piece to null when the player loses
         const min_disp = Math.min(...displacements.map(d => d.y));
         if (min_disp === 0) {
             console.log("GAME OVER");
@@ -69,8 +70,18 @@ function App() {
     return (
         <>
             <OrbitControls ref={orbitRef} />
-            <ambientLight intensity={0.8} />
-            <Grid size={GRID_SIZE} />
+            {/* <ambientLight intensity={2.0} /> */}
+
+            <ambientLight intensity={1.0} />
+            <directionalLight
+                position={[0, GRID_SIZE * 2, -GRID_SIZE / 3]}
+                intensity={2.5}
+                castShadow
+                shadow-mapSize-width={2048}
+                shadow-mapSize-height={2048}
+            />
+
+            <Grid castShadow receiveShadow size={GRID_SIZE} />
 
             {currentPiece}
 
@@ -79,7 +90,7 @@ function App() {
                     return z_val.map((y_val, y) => {
                         if (y_val !== null) {
                             return (
-                                <Box key={`${x}${y}${z}`} args={[1, 1, 1]} position={[x, y, z]}>
+                                <Box castShadow receiveShadow key={`${x}${y}${z}`} args={[1, 1, 1]} position={[x, y, z]}>
                                     <meshPhongMaterial attach="material" color={y_val} />
                                 </Box>
                             )
