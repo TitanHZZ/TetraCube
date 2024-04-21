@@ -2,6 +2,7 @@ import { Box } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import { Vector3 } from 'three';
+import Block from './Block';
 
 // we assume that the block size is 1
 const pieces = {
@@ -257,9 +258,10 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
     return (
         <group ref={pieceRef} position={position}>
             {pieces[type].pos.map((value, index) => (
-                <Box castShadow receiveShadow key={index} args={[1, 1, 1]} position={value}>
-                    <meshPhongMaterial attach="material" color={pieces[type].color} />
-                </Box>
+                // <Box castShadow receiveShadow key={index} args={[1, 1, 1]} position={value}>
+                //     <meshPhongMaterial attach="material" color={pieces[type].color} />
+                // </Box>
+                <Block key={index} color={pieces[type].color} position={value} />
             ))}
         </group>
     );

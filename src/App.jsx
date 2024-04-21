@@ -1,7 +1,9 @@
-import { OrbitControls, Box, Plane } from "@react-three/drei";
+import { OrbitControls, Box, useHelper } from "@react-three/drei";
 import Grid from "../components/Grid";
 import React, { useEffect, useRef, useState } from "react";
 import Piece, { PieceTypes } from "../components/Piece";
+import { DirectionalLightHelper } from "three";
+import Block from "../components/Block";
 
 const GRID_SIZE = 6;
 
@@ -67,21 +69,38 @@ function App() {
         setCurrentPiece(newPiece);
     };
 
+    const dirLight = useRef(null);
+    // useHelper(dirLight, DirectionalLightHelper, 1, "red");
+
     return (
         <>
             <OrbitControls ref={orbitRef} />
-            {/* <ambientLight intensity={2.0} /> */}
 
-            <ambientLight intensity={1.0} />
+            <ambientLight intensity={1} />
             <directionalLight
-                position={[0, GRID_SIZE * 2, -GRID_SIZE / 3]}
-                intensity={2.5}
+                position={[GRID_SIZE / 2 - 0.5, GRID_SIZE * 2 + 1, GRID_SIZE / 2 - 0.5]}
+                target-position={[GRID_SIZE / 2 - 0.5, 0, GRID_SIZE / 2 - 0.5]}
+                intensity={2}
                 castShadow
                 shadow-mapSize-width={2048}
                 shadow-mapSize-height={2048}
+                ref={dirLight}
             />
 
             <Grid castShadow receiveShadow size={GRID_SIZE} />
+
+            {/* <Box castShadow receiveShadow args={[1, 1, 1]}>
+                <meshStandardMaterial
+                    attach="material"
+                    color="red"
+                    metalness={1.8} // Controls the metalness of the material
+                    roughness={0.2} // Controls the roughness of the material
+                />
+            </Box> */}
+            {/* <Block position={[1, 0, 0]} /> */}
+            {/* <Box castShadow receiveShadow args={[1, 1, 1]} position={[2, 0, 0]}>
+                <meshPhongMaterial attach="material" color='red' />
+            </Box> */}
 
             {currentPiece}
 
@@ -90,9 +109,10 @@ function App() {
                     return z_val.map((y_val, y) => {
                         if (y_val !== null) {
                             return (
-                                <Box castShadow receiveShadow key={`${x}${y}${z}`} args={[1, 1, 1]} position={[x, y, z]}>
-                                    <meshPhongMaterial attach="material" color={y_val} />
-                                </Box>
+                                // <Box castShadow receiveShadow key={`${x}${y}${z}`} args={[1, 1, 1]} position={[x, y, z]}>
+                                //     <meshPhongMaterial attach="material" color={y_val} />
+                                // </Box>
+                                <Block key={`${x}${y}${z}`} color={y_val} position={[x, y, z]} />
                             )
                         }
                     });
