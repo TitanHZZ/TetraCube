@@ -1,8 +1,10 @@
-import { Box } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
-import { useEffect, useRef } from 'react';
-import { Vector3 } from 'three';
+// import { Box } from '@react-three/drei';
+import { useFrame, useThree } from '@react-three/fiber';
+import { useEffect, useRef, useState } from 'react';
+import { Raycaster, Vector3 } from 'three';
 import Block from './Block';
+import { Plane } from '@react-three/drei';
+// import { useRaycast } from '../src/raycast';
 
 // we assume that the block size is 1
 const pieces = {
@@ -135,11 +137,21 @@ function goTo(ref, grid, mov_vector, rot_vector) {
     return [got_to_pos, reason];
 }
 
+function getCollisions(scene, block, dir) {
+    const origin = new Vector3();
+    block.getWorldPosition(origin);
+
+    const raycaster = new Raycaster(origin, dir);
+    return raycaster.intersectObjects(scene.children);
+}
+
 function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCollision }) {
+    const scene = useThree(state => state.scene);
     const pieceRef = useRef(null);
     const elapsedTime = useRef(0);
     const originalPos = useRef([]);
     const pieceState = useRef(PieceState.BeingUsed);
+    const [ind, setInd] = useState([]);
 
     const handleKeyDown = (e) => {
         let mov_vector = { x: 0, y: 0, z: 0 };
@@ -199,6 +211,12 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
             return position.round();
         });
 
+        // // used for the position indicators
+        // pieceRef.current.children.map(c => {
+        //     console.log({ current: c });
+        //     raycasts.push(useRaycast({ current: c }));
+        // });
+
         // cleanup function
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
@@ -206,64 +224,91 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
     }, []);
 
     useFrame((state, delta, xrFrame) => {
-        if (pieceState.current === PieceState.BeingUsed) {
-            // update elapsed time
-            elapsedTime.current += delta;
+        if (pieceState.current === PieceState.Done)
+            return;
 
-            // reset elapsed time if it exceeds 1 second and move the piece
-            if (elapsedTime.current >= 1) {
-                elapsedTime.current = 0;
+        // TODO: fix code duplication, make planes double sided, fix rotation bug
+        let new_ind = [];
+        pieceRef.current.children.map((c, i1) => {
+            // down
+            const collisions_down = getCollisions(scene, c, new Vector3(0, -1, 0));
+            const plane_collisions_down = collisions_down.filter(collision => collision.object.name === 'collision plane');
+            new_ind.push(<Plane key={`${i1}_down`} position={plane_collisions_down[0].point} rotation={[-Math.PI / 2, 0, 0]} />);
 
-                // try to move down
-                const mov_vector = { x: 0, y: -1, z: 0 };
-                const rot_vector = { x: 0, y: 0, z: 0 };
-                const [got_down, reason] = goTo(pieceRef, grid, mov_vector, rot_vector);
+            // front
+            const collisions_front = getCollisions(scene, c, new Vector3(0, 0, -1));
+            const plane_collisions_front = collisions_front.filter(collision => collision.object.name === 'collision plane');
+            new_ind.push(<Plane key={`${i1}_front`} position={plane_collisions_front[0].point} rotation={[0, 0, 0]} />);
 
-                // check if piece can go down
-                if (got_down === false && reason === InvalidPositionReason.CannotGoDown) {
-                    pieceState.current = PieceState.Done;
+            // left
+            const collisions_left = getCollisions(scene, c, new Vector3(-1, 0, 0));
+            const plane_collisions_left = collisions_left.filter(collision => collision.object.name === 'collision plane');
+            new_ind.push(<Plane key={`${i1}_left`} position={plane_collisions_left[0].point} rotation={[0, Math.PI / 2, 0]} />);
+        });
 
-                    // update the grid with the new blocks
-                    pieceRef.current.children.map(c => {
-                        let position = new Vector3();
-                        c.getWorldPosition(position);
-                        position = position.round();
+        setInd(new_ind);
 
-                        grid[position.x][position.z][position.y] = pieces[type].color;
-                    });
+        // update elapsed time
+        elapsedTime.current += delta;
 
-                    let displacements = [];
+        // reset elapsed time if it exceeds 1 second and move the piece
+        if (elapsedTime.current >= 1) {
+            elapsedTime.current = 0;
 
-                    // calculate the final displacement for each block
-                    pieceRef.current.children.map((c, i) => {
-                        const position = new Vector3();
-                        c.getWorldPosition(position);
+            // try to move down
+            const mov_vector = { x: 0, y: -1, z: 0 };
+            const rot_vector = { x: 0, y: 0, z: 0 };
+            const [got_down, reason] = goTo(pieceRef, grid, mov_vector, rot_vector);
 
-                        const disp = position.round().sub(originalPos.current[i]);
-                        const abs_disp = {
-                            x: Math.abs(disp.x),
-                            y: Math.abs(disp.y),
-                            z: Math.abs(disp.z)
-                        };
+            // check if piece can go down
+            if (got_down === false && reason === InvalidPositionReason.CannotGoDown) {
+                pieceState.current = PieceState.Done;
 
-                        displacements.push(abs_disp);
-                    });
+                // update the grid with the new blocks
+                pieceRef.current.children.map(c => {
+                    let position = new Vector3();
+                    c.getWorldPosition(position);
+                    position = position.round();
 
-                    onCollision(displacements);
-                }
+                    grid[position.x][position.z][position.y] = pieces[type].color;
+                });
+
+                let displacements = [];
+
+                // calculate the final displacement for each block
+                pieceRef.current.children.map((c, i) => {
+                    const position = new Vector3();
+                    c.getWorldPosition(position);
+
+                    const disp = position.round().sub(originalPos.current[i]);
+                    const abs_disp = {
+                        x: Math.abs(disp.x),
+                        y: Math.abs(disp.y),
+                        z: Math.abs(disp.z)
+                    };
+
+                    displacements.push(abs_disp);
+                });
+
+                onCollision(displacements);
             }
         }
     });
 
     return (
-        <group ref={pieceRef} position={position}>
-            {pieces[type].pos.map((value, index) => (
-                // <Box castShadow receiveShadow key={index} args={[1, 1, 1]} position={value}>
-                //     <meshPhongMaterial attach="material" color={pieces[type].color} />
-                // </Box>
-                <Block key={index} color={pieces[type].color} position={value} />
-            ))}
-        </group>
+        <>
+            <group ref={pieceRef} position={position}>
+                {pieces[type].pos.map((value, index) => (
+                    // <Box castShadow receiveShadow key={index} args={[1, 1, 1]} position={value}>
+                    //     <meshPhongMaterial attach="material" color={pieces[type].color} />
+                    // </Box>
+                    <Block key={index} color={pieces[type].color} position={value} />
+                ))}
+
+            </group>
+
+            {ind}
+        </>
     );
 }
 

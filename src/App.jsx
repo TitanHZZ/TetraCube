@@ -1,8 +1,8 @@
-import { OrbitControls, Box, useHelper } from "@react-three/drei";
+import { OrbitControls, Box, useHelper, Plane } from "@react-three/drei";
 import Grid from "../components/Grid";
 import React, { useEffect, useRef, useState } from "react";
 import Piece, { PieceTypes } from "../components/Piece";
-import { DirectionalLightHelper } from "three";
+// import { DirectionalLightHelper } from "three";
 import Block from "../components/Block";
 
 const GRID_SIZE = 6;
@@ -61,7 +61,7 @@ function App() {
         const typeChoice = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
 
         const newPiece = <Piece
-            type={PieceTypes[typeChoice]}
+            type={PieceTypes.OrangeRicky}
             position={[GRID_SIZE / 2 - 1, GRID_SIZE * 2 - 1, GRID_SIZE / 2 - 1]}
             grid={grid.current}
             onCollision={collisionHandler}
@@ -88,6 +88,12 @@ function App() {
             />
 
             <Grid castShadow receiveShadow size={GRID_SIZE} />
+
+            <Plane name="collision plane" visible={false} args={[GRID_SIZE, GRID_SIZE]} position={[GRID_SIZE / 2 - 0.5, -0.5, GRID_SIZE / 2 - 0.5]} rotation={[-Math.PI / 2, 0, 0]} />
+            <Plane name="collision plane" visible={false} args={[GRID_SIZE, GRID_SIZE]} position={[GRID_SIZE / 2 - 0.5, GRID_SIZE / 2 - 0.5,-0.5]} />
+            <Plane name="collision plane" visible={false} args={[GRID_SIZE, GRID_SIZE]} position={[GRID_SIZE / 2 - 0.5, GRID_SIZE * 2 - (GRID_SIZE / 2) - 0.5, -0.5]} />
+            <Plane name="collision plane" visible={false} args={[GRID_SIZE, GRID_SIZE]} position={[-0.5, GRID_SIZE / 2 - 0.5, GRID_SIZE / 2 - 0.5]} rotation={[0, Math.PI / 2, 0]} />
+            <Plane name="collision plane" visible={false} args={[GRID_SIZE, GRID_SIZE]} position={[-0.5, GRID_SIZE * 2 - (GRID_SIZE / 2) - 0.5, GRID_SIZE / 2 - 0.5]} rotation={[0, Math.PI / 2, 0]} />
 
             {/* <Box castShadow receiveShadow args={[1, 1, 1]}>
                 <meshStandardMaterial
