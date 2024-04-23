@@ -61,7 +61,7 @@ function App() {
         const typeChoice = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
 
         const newPiece = <Piece
-            type={PieceTypes.OrangeRicky}
+            type={PieceTypes[typeChoice]}
             position={[GRID_SIZE / 2 - 1, GRID_SIZE * 2 - 1, GRID_SIZE / 2 - 1]}
             grid={grid.current}
             onCollision={collisionHandler}

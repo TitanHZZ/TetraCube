@@ -227,23 +227,21 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
         if (pieceState.current === PieceState.Done)
             return;
 
-        // TODO: fix code duplication, make planes double sided, fix rotation bug
         let new_ind = [];
+        const dir_rot = [
+            { dir: new Vector3(0, -1, 0), rot: [-Math.PI / 2, 0, 0] },
+            { dir: new Vector3(0, 0, -1), rot: [0, 0, 0] },
+            { dir: new Vector3(-1, 0, 0), rot: [0, Math.PI / 2, 0] }
+        ];
         pieceRef.current.children.map((c, i1) => {
-            // down
-            const collisions_down = getCollisions(scene, c, new Vector3(0, -1, 0));
-            const plane_collisions_down = collisions_down.filter(collision => collision.object.name === 'collision plane');
-            new_ind.push(<Plane key={`${i1}_down`} position={plane_collisions_down[0].point} rotation={[-Math.PI / 2, 0, 0]} />);
+            dir_rot.map(({ dir, rot }, i2) => {
+                const collisions = getCollisions(scene, c, dir);
+                const plane_collisions = collisions.filter(collision => collision.object.name === 'collision plane');
 
-            // front
-            const collisions_front = getCollisions(scene, c, new Vector3(0, 0, -1));
-            const plane_collisions_front = collisions_front.filter(collision => collision.object.name === 'collision plane');
-            new_ind.push(<Plane key={`${i1}_front`} position={plane_collisions_front[0].point} rotation={[0, 0, 0]} />);
-
-            // left
-            const collisions_left = getCollisions(scene, c, new Vector3(-1, 0, 0));
-            const plane_collisions_left = collisions_left.filter(collision => collision.object.name === 'collision plane');
-            new_ind.push(<Plane key={`${i1}_left`} position={plane_collisions_left[0].point} rotation={[0, Math.PI / 2, 0]} />);
+                // make sure we have a collision
+                if (plane_collisions[0])
+                    new_ind.push(<Plane key={`${i1}${i2}`} position={plane_collisions[0].point} rotation={rot} />);
+            });
         });
 
         setInd(new_ind);
