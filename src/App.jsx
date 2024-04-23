@@ -90,7 +90,7 @@ function App() {
             <Grid castShadow receiveShadow size={GRID_SIZE} />
 
             <Plane name="collision plane" visible={false} args={[GRID_SIZE, GRID_SIZE]} position={[GRID_SIZE / 2 - 0.5, -0.5, GRID_SIZE / 2 - 0.5]} rotation={[-Math.PI / 2, 0, 0]} />
-            <Plane name="collision plane" visible={false} args={[GRID_SIZE, GRID_SIZE]} position={[GRID_SIZE / 2 - 0.5, GRID_SIZE / 2 - 0.5,-0.5]} />
+            <Plane name="collision plane" visible={false} args={[GRID_SIZE, GRID_SIZE]} position={[GRID_SIZE / 2 - 0.5, GRID_SIZE / 2 - 0.5, -0.5]} />
             <Plane name="collision plane" visible={false} args={[GRID_SIZE, GRID_SIZE]} position={[GRID_SIZE / 2 - 0.5, GRID_SIZE * 2 - (GRID_SIZE / 2) - 0.5, -0.5]} />
             <Plane name="collision plane" visible={false} args={[GRID_SIZE, GRID_SIZE]} position={[-0.5, GRID_SIZE / 2 - 0.5, GRID_SIZE / 2 - 0.5]} rotation={[0, Math.PI / 2, 0]} />
             <Plane name="collision plane" visible={false} args={[GRID_SIZE, GRID_SIZE]} position={[-0.5, GRID_SIZE * 2 - (GRID_SIZE / 2) - 0.5, GRID_SIZE / 2 - 0.5]} rotation={[0, Math.PI / 2, 0]} />
@@ -118,8 +118,8 @@ function App() {
                                 // <Box castShadow receiveShadow key={`${x}${y}${z}`} args={[1, 1, 1]} position={[x, y, z]}>
                                 //     <meshPhongMaterial attach="material" color={y_val} />
                                 // </Box>
-                                <Block key={`${x}${y}${z}`} color={y_val} position={[x, y, z]} />
-                            )
+                                <Block name="collision block" key={`${x}${y}${z}`} color={y_val} position={[x, y, z]} />
+                            );
                         }
                     });
                 });

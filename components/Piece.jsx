@@ -1,10 +1,8 @@
-// import { Box } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
-import { Raycaster, Vector3 } from 'three';
+import { DoubleSide, Raycaster, Vector3 } from 'three';
 import Block from './Block';
 import { Plane } from '@react-three/drei';
-// import { useRaycast } from '../src/raycast';
 
 // we assume that the block size is 1
 const pieces = {
@@ -145,6 +143,41 @@ function getCollisions(scene, block, dir) {
     return raycaster.intersectObjects(scene.children);
 }
 
+function generate_pos_indicators(pieceRef, scene, setInd) {
+    // when the game ends, the ref might not be valid
+    if (!pieceRef.current)
+        return;
+
+    let new_ind = [];
+    const collider_names = ['collision block', 'collision plane']; // names are in order of priority
+    const dir_rot = [
+        { dir: new Vector3(0, -1, 0), rot: [-Math.PI / 2, 0, 0] },
+        { dir: new Vector3(0, 0, -1), rot: [0, 0, 0] },
+        { dir: new Vector3(-1, 0, 0), rot: [0, Math.PI / 2, 0] }
+    ];
+
+    pieceRef.current.children.map((c, i1) => {
+        dir_rot.map(({ dir, rot }, i2) => {
+            const collisions = getCollisions(scene, c, dir);
+
+            for (let i = 0; i < collider_names.length; i++) {
+                const _collisions = collisions.filter(collision => collision.object.name === collider_names[i]);
+                if (_collisions[0]) {
+                    _collisions[0].point.y += 0.001; // avoid multiple surfaces on the exact same level
+                    new_ind.push(
+                        <Plane key={`${i1}${i2}`} position={_collisions[0].point} rotation={rot}>
+                            <meshBasicMaterial side={DoubleSide} color='white' />
+                        </Plane>
+                    );
+                    return;
+                }
+            }
+        });
+    });
+
+    setInd(new_ind);
+}
+
 function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCollision }) {
     const scene = useThree(state => state.scene);
     const pieceRef = useRef(null);
@@ -199,6 +232,8 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
         // try to change the piece according to the pressed key
         if (pieceState.current === PieceState.BeingUsed)
             goTo(pieceRef, grid, mov_vector, rot_vector);
+
+        generate_pos_indicators(pieceRef, scene, setInd);
     };
 
     useEffect(() => {
@@ -211,11 +246,7 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
             return position.round();
         });
 
-        // // used for the position indicators
-        // pieceRef.current.children.map(c => {
-        //     console.log({ current: c });
-        //     raycasts.push(useRaycast({ current: c }));
-        // });
+        generate_pos_indicators(pieceRef, scene, setInd);
 
         // cleanup function
         return () => {
@@ -226,25 +257,6 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
     useFrame((state, delta, xrFrame) => {
         if (pieceState.current === PieceState.Done)
             return;
-
-        let new_ind = [];
-        const dir_rot = [
-            { dir: new Vector3(0, -1, 0), rot: [-Math.PI / 2, 0, 0] },
-            { dir: new Vector3(0, 0, -1), rot: [0, 0, 0] },
-            { dir: new Vector3(-1, 0, 0), rot: [0, Math.PI / 2, 0] }
-        ];
-        pieceRef.current.children.map((c, i1) => {
-            dir_rot.map(({ dir, rot }, i2) => {
-                const collisions = getCollisions(scene, c, dir);
-                const plane_collisions = collisions.filter(collision => collision.object.name === 'collision plane');
-
-                // make sure we have a collision
-                if (plane_collisions[0])
-                    new_ind.push(<Plane key={`${i1}${i2}`} position={plane_collisions[0].point} rotation={rot} />);
-            });
-        });
-
-        setInd(new_ind);
 
         // update elapsed time
         elapsedTime.current += delta;
@@ -257,6 +269,8 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
             const mov_vector = { x: 0, y: -1, z: 0 };
             const rot_vector = { x: 0, y: 0, z: 0 };
             const [got_down, reason] = goTo(pieceRef, grid, mov_vector, rot_vector);
+
+            generate_pos_indicators(pieceRef, scene, setInd);
 
             // check if piece can go down
             if (got_down === false && reason === InvalidPositionReason.CannotGoDown) {
@@ -297,12 +311,8 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
         <>
             <group ref={pieceRef} position={position}>
                 {pieces[type].pos.map((value, index) => (
-                    // <Box castShadow receiveShadow key={index} args={[1, 1, 1]} position={value}>
-                    //     <meshPhongMaterial attach="material" color={pieces[type].color} />
-                    // </Box>
                     <Block key={index} color={pieces[type].color} position={value} />
                 ))}
-
             </group>
 
             {ind}

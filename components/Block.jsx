@@ -2,12 +2,12 @@ import { Box } from "@react-three/drei";
 import { useRef } from "react";
 import { BoxGeometry } from "three";
 
-function Block({ size = 1, color = 'red', linewidth = 1, position = [0, 0, 0] }) {
+function Block({ size = 1, color = 'red', name = '', linewidth = 2, position = [0, 0, 0] }) {
     const blockRef = useRef(null);
 
     return (
         <group position={position}>
-            <Box castShadow receiveShadow args={[size, size, size]} ref={blockRef}>
+            <Box name={name} castShadow receiveShadow args={[size, size, size]} ref={blockRef}>
                 <meshStandardMaterial
                     attach="material"
                     color={color}
