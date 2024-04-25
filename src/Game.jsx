@@ -33,7 +33,7 @@ function getRandomPieceType() {
     return PieceTypes[typeChoice];
 }
 
-function Game({ state = GameState.Done }) {
+function Game({ state = GameState.Done, onPoints = (_) => {} }) {
     const orbitRef = useRef(null);
     const [currentPieceType, setCurrentPieceType] = useState(null);
     const grid = useRef(generateGrid());
@@ -73,6 +73,7 @@ function Game({ state = GameState.Done }) {
         }
 
         setCurrentPieceType(null);
+        onPoints(10);
     };
 
     return (
