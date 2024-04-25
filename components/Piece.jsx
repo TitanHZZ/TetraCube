@@ -151,19 +151,19 @@ function generate_pos_indicators(pieceRef, scene, setInd) {
     let new_ind = [];
     const collider_names = ['collision block', 'collision plane']; // names are in order of priority
     const dir_rot = [
-        { dir: new Vector3(0, -1, 0), rot: [-Math.PI / 2, 0, 0] },
-        { dir: new Vector3(0, 0, -1), rot: [0, 0, 0] },
-        { dir: new Vector3(-1, 0, 0), rot: [0, Math.PI / 2, 0] }
+        { dir: new Vector3(0, -1, 0), offset: new Vector3(0, 0.001, 0), rot: [-Math.PI / 2, 0, 0] },
+        { dir: new Vector3(0, 0, -1), offset: new Vector3(0, 0, 0.001), rot: [0, 0, 0] },
+        { dir: new Vector3(-1, 0, 0), offset: new Vector3(0.001, 0, 0), rot: [0, Math.PI / 2, 0] }
     ];
 
     pieceRef.current.children.map((c, i1) => {
-        dir_rot.map(({ dir, rot }, i2) => {
+        dir_rot.map(({ dir, offset, rot }, i2) => {
             const collisions = getCollisions(scene, c, dir);
 
             for (let i = 0; i < collider_names.length; i++) {
                 const _collisions = collisions.filter(collision => collision.object.name === collider_names[i]);
                 if (_collisions[0]) {
-                    _collisions[0].point.y += 0.001; // avoid multiple surfaces on the exact same level
+                    _collisions[0].point.add(offset); // avoid multiple surfaces on the exact same level
                     new_ind.push(
                         <Plane key={`${i1}${i2}`} position={_collisions[0].point} rotation={rot}>
                             <meshBasicMaterial side={DoubleSide} color='white' />
@@ -178,15 +178,19 @@ function generate_pos_indicators(pieceRef, scene, setInd) {
     setInd(new_ind);
 }
 
-function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCollision }) {
+function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCollision, paused = false }) {
     const scene = useThree(state => state.scene);
     const pieceRef = useRef(null);
     const elapsedTime = useRef(0);
     const originalPos = useRef([]);
     const pieceState = useRef(PieceState.BeingUsed);
     const [ind, setInd] = useState([]);
+    const isPaused = useRef(paused);
 
     const handleKeyDown = (e) => {
+        if (isPaused.current === true)
+            return;
+
         let mov_vector = { x: 0, y: 0, z: 0 };
         let rot_vector = { x: 0, y: 0, z: 0 };
 
@@ -237,6 +241,10 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
     };
 
     useEffect(() => {
+        isPaused.current = paused;
+    }, [paused]);
+
+    useEffect(() => {
         window.addEventListener('keydown', handleKeyDown);
 
         // used for the displacement calculation
@@ -255,7 +263,7 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
     }, []);
 
     useFrame((state, delta, xrFrame) => {
-        if (pieceState.current === PieceState.Done)
+        if (pieceState.current === PieceState.Done || paused === true)
             return;
 
         // update elapsed time

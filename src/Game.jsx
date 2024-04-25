@@ -6,36 +6,50 @@ import Block from "../components/Block";
 
 const GRID_SIZE = 6;
 
-const GameState = {
+export const GameState = {
     Ongoing: 'Ongoing',
+    Paused: 'Paused',
     Done: 'Done'
 };
 
-function Game({ state = GameState.Done}) {
+function generateGrid() {
+    const initialState = [];
+    for (let i = 0; i < GRID_SIZE; i++) {
+        const xLayer = [];
+        for (let j = 0; j < GRID_SIZE; j++) {
+            const yLayer = new Array(GRID_SIZE * GRID_SIZE).fill(null);
+            xLayer.push(yLayer);
+        }
+
+        initialState.push(xLayer);
+    }
+
+    return initialState;
+}
+
+function getRandomPieceType() {
+    const possibleTypes = Object.keys(PieceTypes);
+    const typeChoice = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
+    return PieceTypes[typeChoice];
+}
+
+function Game({ state = GameState.Done }) {
     const orbitRef = useRef(null);
-    // const gameState = useRef(state);
-    const [currentPiece, setCurrentPiece] = useState(null);
-    const grid = useRef((() => {
-        const initialState = [];
-        for (let i = 0; i < GRID_SIZE; i++) {
-            const xLayer = [];
-            for (let j = 0; j < GRID_SIZE; j++) {
-                const yLayer = new Array(GRID_SIZE * GRID_SIZE).fill(null);
-                xLayer.push(yLayer);
-            }
+    const [currentPieceType, setCurrentPieceType] = useState(null);
+    const grid = useRef(generateGrid());
 
-            initialState.push(xLayer);
-        }
-
-        return initialState;
-    })());
-
-    // add a new piece when the current one is null
+    // some game state logic
     useEffect(() => {
-        if (currentPiece === null && state === GameState.Ongoing) {
-            addPiece();
+        // game terminated by the user
+        if (state === GameState.Done && currentPieceType !== null) {
+            grid.current = generateGrid();
+            setCurrentPieceType(null);
         }
-    }, [currentPiece, state]);
+
+        if (currentPieceType === null && state === GameState.Ongoing) {
+            setCurrentPieceType(getRandomPieceType());
+        }
+    }, [currentPieceType, state]);
 
     // correct the camera position
     useEffect(() => {
@@ -43,10 +57,10 @@ function Game({ state = GameState.Done}) {
             const distance = (GRID_SIZE * 3 + 5) / 2 / Math.tan((Math.PI * 30) / 360);
 
             // change the position
-            orbitRef.current.object.position.set(distance / 2, distance / 2, distance / 2);
+            orbitRef.current.object.position.set(distance / 1.8, distance / 2, distance / 1.8);
 
             // change the camera target (where the camera is looking at)
-            orbitRef.current.target.set(0, GRID_SIZE / 2, 0);
+            orbitRef.current.target.set(0, GRID_SIZE / 2 - 1, 0);
         }
     }, [orbitRef.current]);
 
@@ -58,20 +72,7 @@ function Game({ state = GameState.Done}) {
             console.log("GAME OVER");
         }
 
-        setCurrentPiece(null);
-    };
-
-    const addPiece = () => {
-        const possibleTypes = Object.keys(PieceTypes);
-        const typeChoice = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
-
-        const newPiece = <Piece
-            type={PieceTypes[typeChoice]}
-            position={[GRID_SIZE / 2 - 1, GRID_SIZE * 2 - 1, GRID_SIZE / 2 - 1]}
-            grid={grid.current}
-            onCollision={collisionHandler}
-        />;
-        setCurrentPiece(newPiece);
+        setCurrentPieceType(null);
     };
 
     return (
@@ -96,7 +97,16 @@ function Game({ state = GameState.Done}) {
             <Plane name="collision plane" visible={false} args={[GRID_SIZE, GRID_SIZE]} position={[-0.5, GRID_SIZE / 2 - 0.5, GRID_SIZE / 2 - 0.5]} rotation={[0, Math.PI / 2, 0]} />
             <Plane name="collision plane" visible={false} args={[GRID_SIZE, GRID_SIZE]} position={[-0.5, GRID_SIZE * 2 - (GRID_SIZE / 2) - 0.5, GRID_SIZE / 2 - 0.5]} rotation={[0, Math.PI / 2, 0]} />
 
-            {currentPiece}
+            {currentPieceType !== null ?
+                <Piece
+                    type={currentPieceType}
+                    position={[GRID_SIZE / 2 - 1, GRID_SIZE * 2 - 1, GRID_SIZE / 2 - 1]}
+                    grid={grid.current}
+                    onCollision={collisionHandler}
+                    paused={state === GameState.Paused}
+                />
+                : null
+            }
 
             {grid.current.map((x_val, x) => {
                 return x_val.map((z_val, z) => {
