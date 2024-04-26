@@ -7,9 +7,10 @@ import Block from "../components/Block";
 const GRID_SIZE = 6;
 
 export const GameState = {
-    Ongoing: 'Ongoing',
-    Paused: 'Paused',
-    Done: 'Done'
+    Ongoing: 'Ongoing',  // game is running
+    Paused: 'Paused',    // game is paused
+    Quit: 'Quit',        // game was terminated by the user
+    GameOver: 'GameOver' // game was lost
 };
 
 function generateGrid() {
@@ -33,20 +34,24 @@ function getRandomPieceType() {
     return PieceTypes[typeChoice];
 }
 
-function Game({ state = GameState.Done, onPoints = (_) => {} }) {
+function Game({ state = GameState.Quit, onPoints = (_) => { }, onGameOver = () => { } }) {
     const orbitRef = useRef(null);
     const [currentPieceType, setCurrentPieceType] = useState(null);
-    const grid = useRef(generateGrid());
+    const [grid, setGrid] = useState(generateGrid());
 
     // some game state logic
     useEffect(() => {
-        // game terminated by the user
-        if (state === GameState.Done && currentPieceType !== null) {
-            grid.current = generateGrid();
+        if (state === GameState.GameOver && currentPieceType !== null) {
             setCurrentPieceType(null);
         }
 
-        if (currentPieceType === null && state === GameState.Ongoing) {
+        // game terminated by the user
+        if (state === GameState.Quit) {
+            setGrid(generateGrid());
+            setCurrentPieceType(null);
+        }
+
+        if (state === GameState.Ongoing && currentPieceType === null) {
             setCurrentPieceType(getRandomPieceType());
         }
     }, [currentPieceType, state]);
@@ -65,14 +70,13 @@ function Game({ state = GameState.Done, onPoints = (_) => {} }) {
     }, [orbitRef.current]);
 
     const collisionHandler = (displacements) => {
-        // TODO: use a callback to change the game state to Done
         const min_disp = Math.min(...displacements.map(d => d.y));
         if (min_disp === 0) {
-            // gameState.current = GameState.Done;
-            console.log("GAME OVER");
+            onGameOver();
+        } else {
+            setCurrentPieceType(null);
         }
 
-        setCurrentPieceType(null);
         onPoints(10);
     };
 
@@ -102,14 +106,14 @@ function Game({ state = GameState.Done, onPoints = (_) => {} }) {
                 <Piece
                     type={currentPieceType}
                     position={[GRID_SIZE / 2 - 1, GRID_SIZE * 2 - 1, GRID_SIZE / 2 - 1]}
-                    grid={grid.current}
+                    grid={grid}
                     onCollision={collisionHandler}
                     paused={state === GameState.Paused}
                 />
                 : null
             }
 
-            {grid.current.map((x_val, x) => {
+            {grid.map((x_val, x) => {
                 return x_val.map((z_val, z) => {
                     return z_val.map((y_val, y) => {
                         if (y_val !== null) {
