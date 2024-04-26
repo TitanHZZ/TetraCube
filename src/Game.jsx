@@ -34,6 +34,34 @@ function getRandomPieceType() {
     return PieceTypes[typeChoice];
 }
 
+function checkLayers(grid) {
+    let layers_completed = 0;
+    for (let y = 0; y < grid.length * 2; y++) {
+
+        let is_completed = true;
+        for (let x = 0; x < grid.length; x++) {
+            for (let z = 0; z < grid.length; z++) {
+                is_completed &= grid[x][z][y] !== null;
+            }
+        }
+
+        if (is_completed) {
+            for (let _y = 0; _y < grid.length * 2; _y++) {
+                for (let _x = 0; _x < grid.length; _x++) {
+                    for (let _z = 0; _z < grid.length; _z++) {
+                        grid[_x][_z][_y] = grid[_x][_z][_y + 1] || null;
+                    }
+                }
+            }
+
+            y--;
+            layers_completed++;
+        }
+    }
+
+    return layers_completed;
+}
+
 function Game({ state = GameState.Quit, onPoints = (_) => { }, onGameOver = () => { } }) {
     const orbitRef = useRef(null);
     const [currentPieceType, setCurrentPieceType] = useState(null);
@@ -73,11 +101,12 @@ function Game({ state = GameState.Quit, onPoints = (_) => { }, onGameOver = () =
         const min_disp = Math.min(...displacements.map(d => d.y));
         if (min_disp === 0) {
             onGameOver();
+            onPoints(10);
         } else {
+            // check if the player has completed a 'layer' before adding another piece
+            onPoints(100 * checkLayers(grid) + 10);
             setCurrentPieceType(null);
         }
-
-        onPoints(10);
     };
 
     return (
