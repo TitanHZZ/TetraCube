@@ -80,8 +80,9 @@ const InvalidPositionReason = {
     Ok: 'Ok'
 };
 
-const PieceState = {
+export const PieceState = {
     BeingUsed: 'Being Used',
+    InDisplay: 'InDisplay',
     Done: 'Done'
 };
 
@@ -178,12 +179,12 @@ function generate_pos_indicators(pieceRef, scene, setInd) {
     setInd(new_ind);
 }
 
-function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCollision, paused = false }) {
+function Piece({ defaultState = PieceState.BeingUsed, type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCollision, paused = false }) {
     const scene = useThree(state => state.scene);
     const pieceRef = useRef(null);
     const elapsedTime = useRef(0);
     const originalPos = useRef([]);
-    const pieceState = useRef(PieceState.BeingUsed);
+    const pieceState = useRef(defaultState);
     const [ind, setInd] = useState([]);
     const isPaused = useRef(paused);
 
@@ -244,11 +245,12 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
         generate_pos_indicators(pieceRef, scene, setInd);
     };
 
-    useEffect(() => {
-        isPaused.current = paused;
-    }, [paused]);
+    useEffect(() => isPaused.current = paused, [paused]);
 
     useEffect(() => {
+        if (pieceState.current === PieceState.InDisplay)
+            return;
+
         window.addEventListener('keydown', handleKeyDown);
 
         // used for the displacement calculation
@@ -267,7 +269,7 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
     }, []);
 
     useFrame((_, delta, __) => {
-        if (pieceState.current === PieceState.Done || paused === true)
+        if (pieceState.current === PieceState.Done || pieceState.current === PieceState.InDisplay || paused === true)
             return;
 
         // update elapsed time

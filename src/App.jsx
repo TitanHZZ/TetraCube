@@ -1,9 +1,11 @@
 import { Canvas } from "@react-three/fiber";
-import Game, { GameState } from "./Game";
+import Game, { GameState, GRID_SIZE } from "./Game";
 import { useRef, useState } from "react";
+import Piece, { PieceState, PieceTypes } from "../components/Piece";
 
 function App() {
     const [gameState, setGameState] = useState(GameState.Quit);
+    const [nextPieceType, setNextPieceType] = useState(null);
     const [score, setScore] = useState(0);
     const startButtonRef = useRef(null);
     const pauseButtonRef = useRef(null);
@@ -37,16 +39,30 @@ function App() {
                 <div className="flex justify-end">
                     <div style={{ width: '40rem' }}>
                         <Canvas camera={{ fov: 30 }} shadows>
-                            <Game state={gameState} onPoints={(points) => setScore(score + points)} onGameOver={() => setGameState(GameState.GameOver)} />
+                            <Game state={gameState} onPoints={(points) => setScore(score + points)} onGameOver={() => setGameState(GameState.GameOver)} onNewPiece={(newPieceType) => setNextPieceType(newPieceType)} />
                         </ Canvas >
                     </div>
                 </div>
                 <div className="m-28 text-white font-bold text-2xl">
-                    <div className="mb-5">
-                        Next:
-                    </div>
                     <div>
                         Score: <span className="text-gray-300">{score}</span>
+                    </div>
+                    <div className={`mb-5 mt-3 flex ${(gameState === GameState.Quit || nextPieceType === null) ? 'invisible' : 'visible'}`}>
+                        Next:
+                        <div className="w-40" style={{ transform: 'translate(-20%, -53%)' }}>
+                            <Canvas shadows>
+                                <ambientLight intensity={1} />
+                                <directionalLight
+                                    position={[GRID_SIZE / 2 - 0.5, GRID_SIZE * 2 + 1, GRID_SIZE / 2 - 0.5]}
+                                    target-position={[GRID_SIZE / 2 - 0.5, 0, GRID_SIZE / 2 - 0.5]}
+                                    intensity={2}
+                                    castShadow
+                                    shadow-mapSize-width={2048}
+                                    shadow-mapSize-height={2048}
+                                />
+                                <Piece defaultState={PieceState.InDisplay} type={nextPieceType || PieceTypes.OrangeRicky} position={[0, -1, 0]} />
+                            </Canvas>
+                        </div>
                     </div>
                 </div>
             </div>

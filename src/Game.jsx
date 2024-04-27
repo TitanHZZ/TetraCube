@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Piece, { PieceTypes } from "../components/Piece";
 import Block from "../components/Block";
 
-const GRID_SIZE = 6;
+export const GRID_SIZE = 6;
 
 export const GameState = {
     Ongoing: 'Ongoing',  // game is running
@@ -62,10 +62,13 @@ function checkLayers(grid) {
     return layers_completed;
 }
 
-function Game({ state = GameState.Quit, onPoints = (_) => { }, onGameOver = () => { } }) {
+function Game({ state = GameState.Quit, onPoints = (_) => { }, onGameOver = () => { }, onNewPiece = () => { } }) {
     const orbitRef = useRef(null);
     const [currentPieceType, setCurrentPieceType] = useState(null);
+    const nextPieceType = useRef(getRandomPieceType());
     const [grid, setGrid] = useState(generateGrid());
+
+    useEffect(() => onNewPiece(nextPieceType.current), [nextPieceType.current]);
 
     // some game state logic
     useEffect(() => {
@@ -80,7 +83,9 @@ function Game({ state = GameState.Quit, onPoints = (_) => { }, onGameOver = () =
         }
 
         if (state === GameState.Ongoing && currentPieceType === null) {
-            setCurrentPieceType(getRandomPieceType());
+            setCurrentPieceType(nextPieceType.current);
+            nextPieceType.current = getRandomPieceType();
+            // setCurrentPieceType(getRandomPieceType());
         }
     }, [currentPieceType, state]);
 
