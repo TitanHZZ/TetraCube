@@ -1,10 +1,12 @@
 import { Canvas } from "@react-three/fiber";
 import Game, { GameState } from "./Game";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 function App() {
     const [gameState, setGameState] = useState(GameState.Quit);
     const [score, setScore] = useState(0);
+    const startButtonRef = useRef(null);
+    const pauseButtonRef = useRef(null);
 
     return (
         <div className="h-screen overflow-hidden" style={{ backgroundColor: "#484954" }}>
@@ -19,10 +21,15 @@ function App() {
                         setGameState(GameState.Quit);
                         setScore(0);
                     }
-                }}>
+
+                    startButtonRef.current.blur();
+                }} ref={startButtonRef}>
                     {gameState !== GameState.Quit ? 'Quit' : 'Start'}
                 </button>
-                <button className={`bg-orange-500 hover:bg-orange-700 w-24 text-white font-bold my-4 ml-5 px-5 rounded ${(gameState !== GameState.Quit && gameState !== GameState.GameOver) ? 'visible' : 'invisible'}`} onClick={() => setGameState(gameState === GameState.Ongoing ? GameState.Paused : GameState.Ongoing)}>
+                <button className={`bg-orange-500 hover:bg-orange-700 w-24 text-white font-bold my-4 ml-5 px-5 rounded ${(gameState !== GameState.Quit && gameState !== GameState.GameOver) ? 'visible' : 'invisible'}`} onClick={() => {
+                    setGameState(gameState === GameState.Ongoing ? GameState.Paused : GameState.Ongoing)
+                    pauseButtonRef.current.blur();
+                }} ref={pauseButtonRef}>
                     {gameState === GameState.Ongoing ? 'Pause' : 'Resume'}
                 </button>
             </div>
@@ -39,11 +46,11 @@ function App() {
                         Next:
                     </div>
                     <div>
-                        Score: {score}
+                        Score: <span className="text-gray-300">{score}</span>
                     </div>
                 </div>
             </div>
-            <div className={`absolute top-1/2 right-1/2 bg-white px-5 py-4 font-bold text-2xl rounded ${gameState === GameState.GameOver ? 'visible': 'invisible'}`} style={{ transform: 'translate(50%, -50%)' }}>
+            <div className={`absolute top-1/2 right-1/2 bg-white px-5 py-4 font-bold text-2xl rounded ${gameState === GameState.GameOver ? 'visible' : 'invisible'}`} style={{ transform: 'translate(50%, -50%)' }}>
                 Game over
             </div>
         </div>

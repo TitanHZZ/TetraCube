@@ -91,7 +91,7 @@ function isValidPosition(grid, blocks) {
         const y = blocks[i].y;
         const z = blocks[i].z;
 
-        if (x < 0 || z < 0 || x >= grid.length /*|| y >= grid.length * 2*/ || z >= grid.length)
+        if (x < 0 || z < 0 || x >= grid.length || z >= grid.length)
             return [false, InvalidPositionReason.InvalidPos];
 
         if (y < 0 || grid[x][z][y] !== null)
@@ -207,15 +207,19 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
         switch (e.key.toUpperCase()) {
             // position
             case 'W':
+            case 'ARROWUP':
                 mov_vector.z -= 1;
                 break;
             case 'S':
+            case 'ARROWDOWN':
                 mov_vector.z += 1;
                 break;
             case 'A':
+            case 'ARROWLEFT':
                 mov_vector.x -= 1;
                 break;
             case 'D':
+            case 'ARROWRIGHT':
                 mov_vector.x += 1;
                 break;
 
@@ -262,7 +266,7 @@ function Piece({ type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCo
         };
     }, []);
 
-    useFrame((state, delta, xrFrame) => {
+    useFrame((_, delta, __) => {
         if (pieceState.current === PieceState.Done || paused === true)
             return;
 
