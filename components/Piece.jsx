@@ -245,7 +245,9 @@ function Piece({ defaultState = PieceState.BeingUsed, type = PieceTypes.OrangeRi
         generate_pos_indicators(pieceRef, scene, setInd);
     };
 
-    useEffect(() => isPaused.current = paused, [paused]);
+    useEffect(() => {
+        isPaused.current = paused;
+    }, [paused]);
 
     useEffect(() => {
         if (pieceState.current === PieceState.InDisplay)
