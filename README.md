@@ -5,7 +5,6 @@
 
 * [About the Project](#about-the-project)
 * [Usage](#usage)
-* [Useful resources](#useful-resources)
 
 ### About the Project
 This project consists of a Tetris clone but in 3D.
