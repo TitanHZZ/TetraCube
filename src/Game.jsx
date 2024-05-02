@@ -62,11 +62,14 @@ function checkLayers(grid) {
     return layers_completed;
 }
 
-function Game({ state = GameState.Quit, onPoints = (_) => { }, onGameOver = () => { }, onNewPiece = () => { } }) {
+function Game({ state = GameState.Quit, onPoints = (_) => { }, onGameOver = () => { }, onNewPiece = () => { }, onHold = () => { } }) {
     const orbitRef = useRef(null);
     const [currentPieceType, setCurrentPieceType] = useState(null);
-    const nextPieceType = useRef(getRandomPieceType());
     const [grid, setGrid] = useState(generateGrid());
+    const nextPieceType = useRef(getRandomPieceType());
+    const prevPieceType = useRef(null);
+    const holdPieceType = useRef(null);
+    const swap = useRef(false);
 
     useEffect(() => onNewPiece(nextPieceType.current), [nextPieceType.current]);
 
@@ -78,14 +81,31 @@ function Game({ state = GameState.Quit, onPoints = (_) => { }, onGameOver = () =
 
         // game terminated by the user
         if (state === GameState.Quit) {
+            holdPieceType.current = null;
             setGrid(generateGrid());
             setCurrentPieceType(null);
         }
 
         if (state === GameState.Ongoing && currentPieceType === null) {
-            setCurrentPieceType(nextPieceType.current);
-            nextPieceType.current = getRandomPieceType();
-            // setCurrentPieceType(getRandomPieceType());
+            if (swap.current === false) {
+                // the player did not swap so just generate a new random piece
+                setCurrentPieceType(nextPieceType.current);
+                nextPieceType.current = getRandomPieceType();
+                return;
+            }
+
+            swap.current = false;
+            if (holdPieceType.current === null) {
+                // add the current piece to the 'hold' slot
+                holdPieceType.current = prevPieceType.current;
+                setCurrentPieceType(nextPieceType.current);
+                nextPieceType.current = getRandomPieceType();
+            } else {
+                // swap the current piece with the piece on 'hold'
+                const tmp = holdPieceType.current;
+                holdPieceType.current = prevPieceType.current;
+                setCurrentPieceType(tmp);
+            }
         }
     }, [currentPieceType, state]);
 
@@ -112,6 +132,13 @@ function Game({ state = GameState.Quit, onPoints = (_) => { }, onGameOver = () =
             onPoints(100 * checkLayers(grid) + 10);
             setCurrentPieceType(null);
         }
+    };
+
+    const holdHandler = () => {
+        onHold(currentPieceType);
+        swap.current = true;
+        prevPieceType.current = currentPieceType;
+        setCurrentPieceType(null);
     };
 
     return (
@@ -142,6 +169,7 @@ function Game({ state = GameState.Quit, onPoints = (_) => { }, onGameOver = () =
                     position={[GRID_SIZE / 2 - 1, GRID_SIZE * 2 - 1, GRID_SIZE / 2 - 1]}
                     grid={grid}
                     onCollision={collisionHandler}
+                    onHold={holdHandler}
                     paused={state === GameState.Paused}
                 />
                 : null
@@ -160,4 +188,4 @@ function Game({ state = GameState.Quit, onPoints = (_) => { }, onGameOver = () =
     )
 }
 
-export default Game;
+export default React.memo(Game);

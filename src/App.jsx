@@ -1,11 +1,12 @@
 import { Canvas } from "@react-three/fiber";
 import Game, { GameState, GRID_SIZE } from "./Game";
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import Piece, { PieceState, PieceTypes } from "../components/Piece";
 
 function App() {
     const [gameState, setGameState] = useState(GameState.Quit);
     const [nextPieceType, setNextPieceType] = useState(null);
+    const [holdPieceType, setHoldPieceType] = useState(null);
     const [score, setScore] = useState(0);
     const startButtonRef = useRef(null);
     const pauseButtonRef = useRef(null);
@@ -25,6 +26,7 @@ function App() {
                         ambientAudioRef.current.play();
                     } else {
                         setGameState(GameState.Quit);
+                        setHoldPieceType(null);
                         setScore(0);
 
                         ambientAudioRef.current.pause();
@@ -50,7 +52,7 @@ function App() {
                             <Game state={gameState} onPoints={(points) => {
                                 setScore(score + points);
                                 pointsAudioRef.current.play();
-                            }} onGameOver={() => setGameState(GameState.GameOver)} onNewPiece={(newPieceType) => setNextPieceType(newPieceType)} />
+                            }} onGameOver={() => setGameState(GameState.GameOver)} onNewPiece={(newPieceType) => setNextPieceType(newPieceType)} onHold={(pieceType) => setHoldPieceType(pieceType)} />
                         </ Canvas >
                     </div>
                 </div>
@@ -58,7 +60,7 @@ function App() {
                     <div>
                         Score: <span className="text-gray-300">{score}</span>
                     </div>
-                    <div className={`mb-5 mt-3 flex ${(gameState === GameState.Quit || nextPieceType === null) ? 'invisible' : 'visible'}`}>
+                    <div className={`mb-5 mt-7 flex ${(gameState === GameState.Quit || nextPieceType === null) ? 'invisible' : 'visible'}`}>
                         Next:
                         <div className="w-40" style={{ transform: 'translate(-20%, -53%)' }}>
                             <Canvas shadows>
@@ -72,6 +74,23 @@ function App() {
                                     shadow-mapSize-height={2048}
                                 />
                                 <Piece defaultState={PieceState.InDisplay} type={nextPieceType || PieceTypes.OrangeRicky} position={[0, -1, 0]} />
+                            </Canvas>
+                        </div>
+                    </div>
+                    <div className={`mb-5 mt-3 flex ${(gameState === GameState.Quit || holdPieceType === null) ? 'invisible' : 'visible'}`} style={{ transform: 'translate(0%, -70%)' }}>
+                        Hold:
+                        <div className="w-40" style={{ transform: 'translate(-20%, -53%)' }}>
+                            <Canvas shadows>
+                                <ambientLight intensity={1} />
+                                <directionalLight
+                                    position={[GRID_SIZE / 2 - 0.5, GRID_SIZE * 2 + 1, GRID_SIZE / 2 - 0.5]}
+                                    target-position={[GRID_SIZE / 2 - 0.5, 0, GRID_SIZE / 2 - 0.5]}
+                                    intensity={2}
+                                    castShadow
+                                    shadow-mapSize-width={2048}
+                                    shadow-mapSize-height={2048}
+                                />
+                                <Piece defaultState={PieceState.InDisplay} type={holdPieceType || PieceTypes.OrangeRicky} position={[0, -1, 0]} />
                             </Canvas>
                         </div>
                     </div>
@@ -90,4 +109,4 @@ function App() {
     );
 }
 
-export default App;
+export default React.memo(App);

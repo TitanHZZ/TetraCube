@@ -1,5 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { DoubleSide, Raycaster, Vector3 } from 'three';
 import Block from './Block';
 import { Plane } from '@react-three/drei';
@@ -179,7 +179,7 @@ function generate_pos_indicators(pieceRef, scene, setInd) {
     setInd(new_ind);
 }
 
-function Piece({ defaultState = PieceState.BeingUsed, type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCollision, paused = false }) {
+function Piece({ defaultState = PieceState.BeingUsed, type = PieceTypes.OrangeRicky, position = [0, 0, 0], grid, onCollision, onHold, paused = false }) {
     const scene = useThree(state => state.scene);
     const pieceRef = useRef(null);
     const elapsedTime = useRef(0);
@@ -191,6 +191,12 @@ function Piece({ defaultState = PieceState.BeingUsed, type = PieceTypes.OrangeRi
     const handleKeyDown = (e) => {
         if (isPaused.current === true)
             return;
+
+        // check for hold action
+        if (e.key.toUpperCase() === 'C') {
+            onHold();
+            return;
+        }
 
         let mov_vector = { x: 0, y: 0, z: 0 };
         let rot_vector = { x: 0, y: 0, z: 0 };
@@ -234,6 +240,7 @@ function Piece({ defaultState = PieceState.BeingUsed, type = PieceTypes.OrangeRi
             case 'R':
                 rot_vector.z += Math.PI / 2;
                 break;
+
             default:
                 break;
         }
@@ -336,4 +343,4 @@ function Piece({ defaultState = PieceState.BeingUsed, type = PieceTypes.OrangeRi
     );
 }
 
-export default Piece;
+export default React.memo(Piece);
