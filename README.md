@@ -1,5 +1,6 @@
 # TetraCube
 3D Three.js tetris clone.
+![Overview Image](public/overview.png "Overview Image")
 
 ## Index
 

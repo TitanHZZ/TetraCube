@@ -12,6 +12,7 @@ function App() {
     const pauseButtonRef = useRef(null);
     const ambientAudioRef = useRef(null);
     const pointsAudioRef = useRef(null);
+    const holdAudioRef = useRef(null);
 
     return (
         <div className="h-screen overflow-hidden" style={{ backgroundColor: "#484954" }}>
@@ -52,7 +53,11 @@ function App() {
                             <Game state={gameState} onPoints={(points) => {
                                 setScore(score + points);
                                 pointsAudioRef.current.play();
-                            }} onGameOver={() => setGameState(GameState.GameOver)} onNewPiece={(newPieceType) => setNextPieceType(newPieceType)} onHold={(pieceType) => setHoldPieceType(pieceType)} />
+                            }} onGameOver={() => setGameState(GameState.GameOver)} onNewPiece={(newPieceType) => setNextPieceType(newPieceType)} onHold={(pieceType) => {
+                                holdAudioRef.current.currentTime = 0;
+                                holdAudioRef.current.play();
+                                setHoldPieceType(pieceType);
+                            }} />
                         </ Canvas >
                     </div>
                 </div>
@@ -94,6 +99,26 @@ function App() {
                             </Canvas>
                         </div>
                     </div>
+                    <div style={{ transform: 'translate(0%, -38%)' }}>
+                        <div>
+                            Drag: <span className="text-gray-300">Mouse</span>
+                        </div>
+                        <div>
+                            Move: <span className="text-gray-300">WASD / Arrow Keys</span>
+                        </div>
+                        <div>
+                            Rotate:
+                            <pre><span className="text-lg">    X-axis: <span className="text-gray-300">Q</span></span></pre>
+                            <pre><span className="text-lg">    Y-axis: <span className="text-gray-300">E</span></span></pre>
+                            <pre><span className="text-lg">    Z-axis: <span className="text-gray-300">R</span></span></pre>
+                        </div>
+                        <div>
+                            Drop: <span className="text-gray-300">Space</span>
+                        </div>
+                        <div>
+                            Hold: <span className="text-gray-300">C</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div className={`absolute top-1/2 right-1/2 bg-white px-5 py-4 font-bold text-2xl rounded ${gameState === GameState.GameOver ? 'visible' : 'invisible'}`} style={{ transform: 'translate(50%, -50%)' }}>
@@ -104,6 +129,9 @@ function App() {
             </audio>
             <audio ref={pointsAudioRef}>
                 <source src="points.mp3" type="audio/mp3" />
+            </audio>
+            <audio ref={holdAudioRef}>
+                <source src="hold.mp3" type="audio/mp3" />
             </audio>
         </div>
     );
